@@ -1,0 +1,190 @@
+/*================================================================================
+NÚMERO 7
+
+isolamento -READ COMMITTED- permite a LEITURA NÃO RPETIVEL(unrepeatable reads) 
+e FANTASMA(phantom reads)
+*/
+begin
+set transaction isolation level read committed;
+select j.Nome, j.RG, e.Nome 
+from Equipe e 
+inner join Jogador j on j.IdEquipe = e.IdEquipe
+where j.RG = 111111111;
+commit;
+/*Aconteceu porque a transação não repetivel lê a mesma linhda 2x, mas obtem valores direferentes a cada vez*/
+
+/*
+B -
+isolamento -REPEATABLE READ- permite apenas as LEITURA FANTASMA(phantom reads)
+*/
+begin 
+set transaction isolation level REPEATABLE READ;
+select j.Nome, j.RG, e.Nome 
+from Equipe e 
+inner join Jogador j on j.IdEquipe = e.IdEquipe
+where j.RG = 111111111;
+commit;
+
+
+/*================================================================================
+NÚMERO 8
+
+A -
+isolamento -READ COMMITTED- perimite LEITURA FANTASMA(phantom reads)e NÃO REPETIVEL(unrepeatable reads)
+
+*/
+begin
+set transaction isolation level read committed; 
+select j.Nome, j.RG, e.Nome 
+from Equipe e 
+inner join Jogador j on j.IdEquipe = e.IdEquipe;
+commit;
+
+/*
+B-
+isolamento -REPEATABLE READ- permite apenas as LEITURA FANTASMA(phantom reads)
+*/
+
+begin
+set transaction isolation level serializable ; 
+select j.Nome, j.RG, e.Nome 
+from Equipe e 
+inner join Jogador j on j.IdEquipe = e.IdEquipe;
+commit;
+
+/*================================================================================
+NÚMERO 9
+
+A -
+*/
+begin 
+set transaction isolation level read committed;
+select * from Jogador;
+commit;
+
+/*
+B - 
+*/
+
+begin 
+set transaction isolation level serializable;
+select * from Jogador;
+commit;
+
+/*
+C - 
+*/
+
+begin 
+set transaction isolation level serializable;
+select * from Jogador;
+commit;
+
+
+drop table Cores_uniforme;
+drop table Cor;
+drop table Uniforme;
+drop table Diretor;
+drop table Posicao_jogador;
+drop table Jogador;
+drop table Partida;
+drop table Joga;
+drop table Equipe;
+
+
+======================================= Query da transação ===============================================
+
+/*================================================================================
+NÚMERO 7
+
+isolamento READ COMMITTED perimite LEITURA FANTASMA(phantom reads) 
+e NÃO REPETIVEL(unrepeatable reads).
+
+Realizando LEITURA NÃO REPETIVEL(unrepeatable reads)
+*/
+begin
+set transaction isolation level read committed;
+
+update Jogador set Nome = 'Joao' where RG = 111111111;
+
+commit;
+
+/*
+B -
+isaolamento REPEATABLE READ permite apenas as LEITURAS FANTASMA(phantom reads)
+*/
+
+begin 
+
+set transaction isolation level repeatable read;
+
+update Jogador set Nome = 'Boaz' where RG = 111111111;
+commit;
+
+
+
+/*================================================================================
+NÚMERO 8
+
+isolamento READ COMMITTED perimite LEITURA FANTASMA(phantom reads) 
+e NÃO REPETIVEL(unrepeatable reads)
+
+Realizando LEITURA FANTASMA(phantom reads)
+*/
+begin 
+
+set transaction isolation level read committed;
+
+insert into Jogador (Nome, RG, Data_nasc, Naturalidade, IdEquipe) values
+('Rberto',3333333, '15-May-2012', 'Brasileiro', 2),
+('Jago',2222222, '2001-01-01', 'Brasileiro', 1);
+
+commit;
+
+/*isaolamento SERIALIZABLE não permite nenhum tipo de LEITURA*/
+
+begin 
+
+set transaction isolation level serializable;
+
+insert into Jogador (Nome, RG, Data_nasc, Naturalidade, IdEquipe) values
+('Rberto',111111111, '15-May-2012', 'Brasileiro', 2),
+('Jago',111111111, '2001-01-01', 'Brasileiro', 1);
+
+commit;
+
+/*================================================================================
+NÚMERO 9
+A -
+*/
+begin
+
+set transaction isolation level READ COMMITTED;
+
+update Jogador set Nome = 'NEURA' where RG = 111111111;
+
+commit;
+
+/*
+B -
+*/
+
+begin
+
+set transaction isolation level serializable;
+
+update Jogador set Nome = 'JUBILEU'  where RG = 111111113;
+
+commit;
+
+/*
+C -
+*/
+
+begin
+
+set transaction isolation level READ COMMITTED;
+
+update Jogador set RG = 333333 where nome = 'Zeca';
+
+rollback;
